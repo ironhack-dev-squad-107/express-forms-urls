@@ -2,6 +2,7 @@
 // -----------------------------------------------------------------------------
 // #############################################################################
 const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -9,9 +10,15 @@ app.listen(5555, () => {
   console.log("SERVER is ready! 🌮");
 });
 
+// app.use() means that this is a MIDDLEWARE
 app.use(express.static(__dirname + "/public"));
 
 app.set("view engine", "hbs");
+
+// Creates "request.body" for our ROUTES that handle POST submissions
+// ("request.body" will be empty without this)
+// app.use() means that this is a MIDDLEWARE
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 // -----------------------------------------------------------------------------
@@ -74,4 +81,31 @@ app.get("/watch/:netflixId", (request, response, next) => {
 
   response.locals.netflixVideoId = netflixId;
   response.render("netflix-video.hbs");
+});
+
+app.get("/login", (request, response, next) => {
+  response.render("login-form.hbs");
+});
+
+app.post("/process-login", (request, response, next) => {
+  // request.body is how you access information in the FORM BODY of POST forms
+  // (request.body is created by the "body-parser" npm package)
+  // request.body = {"userEmail":"blah@blah.com","userPassword":"blah0"}
+  // response.send(request.body);
+
+  const { userEmail, userPassword } = request.body;
+
+  if (userEmail === "blah@blah.com" && userPassword === "blah0") {
+    // take the user to the welcome screen if their credentials are correct
+    // (redirect ONLY to ADDRESSES like "/welcome" NOT to hbs files)
+    response.redirect("/welcome");
+  } else {
+    // take them back to the login screen if their email or password is bad
+    // (redirect ONLY to ADDRESSES like "/login" NOT to hbs files)
+    response.redirect("/login");
+  }
+});
+
+app.get("/welcome", (request, response, next) => {
+  response.render("welcome-user.hbs");
 });
